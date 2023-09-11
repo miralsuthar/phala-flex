@@ -30,7 +30,7 @@ export default async function handler(
       });
     }
 
-    res.status(404).send({
+    return res.status(404).send({
       code: 404,
       error: "Factor Not Found.",
     });
