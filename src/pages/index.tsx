@@ -3,7 +3,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { supabase } from "@/utils/api";
+import { supabase } from "@/utils/db";
 
 const inter = Inter({ subsets: ["latin"] });
 
