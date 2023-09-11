@@ -16,19 +16,21 @@ export default async function handler(
   requireAuthentication(req, res, async () => {
     const { factorHash } = req.query;
 
-    const factor = await supabase
+    const data = await supabase
       .from("user")
       .select("factor")
       .filter("factor_hash", "eq", factorHash);
 
+    const factor = data?.data?.[0]?.factor;
+
     if (factor != undefined) {
-      res.status(200).send({
+      return res.status(200).send({
         code: 200,
-        factor: factor.data as unknown as string,
+        factor,
       });
     }
 
-    res.status(404).send({
+    return res.status(404).send({
       code: 404,
       error: "Factor Not Found.",
     });
