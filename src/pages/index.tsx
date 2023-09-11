@@ -26,6 +26,9 @@ export default function Home() {
   const [step, setStep] = useState<number>(1);
   const [userType, setUserType] = useState<"owner" | "beneficiery">();
   const [activeField, setActiveField] = useState("deposit");
+  const [beneficiery, setBeneficiery] = useState<string>("");
+
+  const [isBeneficiery, setIsBeneficiery] = useState(false);
 
   const { address } = useAccount();
   const router = useRouter();
@@ -49,6 +52,15 @@ export default function Home() {
         setFactor(data.sid);
       });
   }, [address]);
+
+  const addBenefeciery = async () => {
+    const { error } = await supabase
+      .from("user")
+      .update({
+        beneficiery: beneficiery,
+      })
+      .eq("address", address);
+  };
 
   const verifyUser = (otp: string) => {
     fetch(
@@ -106,6 +118,18 @@ export default function Home() {
       }
     })();
   }, [address, getUri, isScanningComplete]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("user")
+        .select("beneficiery")
+        .eq("address", address);
+      if (data?.[0].beneficiery !== null) {
+        setIsBeneficiery(true);
+      }
+    })();
+  }, [address]);
 
   return (
     <main
@@ -183,8 +207,25 @@ export default function Home() {
                 beneficiery
               </div>
             </div>
+            {userType === "owner" && !isBeneficiery && (
+              <div className="flex flex-col">
+                <span>Add your beneficiery address for this account</span>
+                <input
+                  className="p-1 rounded-md border border-gray-300"
+                  placeholder="address"
+                  type="text"
+                  value={beneficiery}
+                  onChange={(e) => setBeneficiery(e.target.value)}
+                />
+              </div>
+            )}
             <button
-              onClick={() => setStep(2)}
+              onClick={async () => {
+                if (userType === "owner") {
+                  await addBenefeciery();
+                }
+                setStep(2);
+              }}
               className="bg-blue-500 text-white px-3 py-1 rounded-lg text-xl hover:scale-105 transition-all"
             >
               continue
