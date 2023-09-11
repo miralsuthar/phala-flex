@@ -4,7 +4,8 @@ import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { supabase } from "@/utils/db";
-import { cn } from "@/utils/helpers";
+import { cn, hash } from "@/utils/helpers";
+import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,6 +28,7 @@ export default function Home() {
   const [activeField, setActiveField] = useState("deposit");
 
   const { address } = useAccount();
+  const router = useRouter();
 
   const getUri = useCallback(() => {
     fetch(
@@ -69,7 +71,7 @@ export default function Home() {
           const { error } = await supabase.from("user").insert({
             address: address as string,
             factor: factor,
-            factor_hash: factor,
+            factor_hash: hash(factor),
           });
         }
       });
@@ -146,11 +148,17 @@ export default function Home() {
           </div>
         )}
         {isverified && (
-          <>
+          <div className="flex flex-col justify-center items-center gap-5">
             <span className="text-center text-green-500 text-2xl">
               Verification Successful!
             </span>
-          </>
+            <button
+              onClick={() => router.reload()}
+              className="bg-blue-500 text-white px-3 py-1 rounded-md text-lg w-max hover:scale-105 transition-all"
+            >
+              Complete
+            </button>
+          </div>
         )}
         {account && step === 1 && (
           <div className="flex flex-col justify-center items-center gap-5">
