@@ -99,7 +99,7 @@ export default function Home() {
           "Content-Type": "application/x-www-form-urlencoded",
           Authorization: "Basic " + btoa(`${AccountSID}:${AuthToken}`),
         },
-        body: "FriendlyName=Phala flex&FactorType=totp&Config.TimeStep=59",
+        body: "FriendlyName=Phala flex&FactorType=totp",
       }
     )
       .then((res) => res.json())
