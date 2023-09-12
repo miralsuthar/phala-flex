@@ -167,7 +167,7 @@ export default function Home() {
       const { data, error } = await supabase
         .from("user")
         .select("*")
-        .eq("address", address);
+        .eq("address", address?.toLocaleLowerCase());
       if (address && data?.length === 0 && !isScanningComplete) {
         getUri();
       } else {
