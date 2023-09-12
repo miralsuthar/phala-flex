@@ -92,7 +92,7 @@ export default function Home() {
 
   const getUri = useCallback(() => {
     fetch(
-      `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address}/Factors`,
+      `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address?.toLocaleLowerCase()}/Factors`,
       {
         method: "POST",
         headers: {
@@ -121,7 +121,7 @@ export default function Home() {
 
   const verifyUser = (otp: string) => {
     fetch(
-      `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address}/Factors/${factor}`,
+      `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address?.toLocaleLowerCase()}/Factors/${factor}`,
       {
         method: "POST",
         headers: {
