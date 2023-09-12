@@ -6,12 +6,39 @@ import { useAccount } from "wagmi";
 import { supabase } from "@/utils/db";
 import { cn, hash } from "@/utils/helpers";
 import { useRouter } from "next/router";
+import {
+  useContractWrite,
+  useContractRead,
+  usePrepareContractWrite,
+} from "wagmi";
+
+import IERC20ABI from "@/contract/IERC20.json";
+import DusdcABI from "@/contract/Dusd.json";
+import { parseEther } from "viem";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const serviceId = process.env.NEXT_PUBLIC_SERVICE_ID as string;
 const AccountSID = process.env.NEXT_PUBLIC_ACCOUNT_SID as string;
 const AuthToken = process.env.NEXT_PUBLIC_AUTH_TOKEN as string;
+
+const tokens = [
+  {
+    id: 1,
+    value: "0x0000000000000000000001",
+    name: "matic",
+  },
+  {
+    id: 2,
+    value: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
+    name: "dusd",
+  },
+  {
+    id: 3,
+    value: "0x0000000000000000000001",
+    name: "usdt",
+  },
+];
 
 export default function Home() {
   const [qruri, setQrui] = useState("");
@@ -33,6 +60,36 @@ export default function Home() {
   const { address } = useAccount();
   const router = useRouter();
 
+  //ERC20 Approve function
+  const {
+    data,
+    isLoading,
+    isSuccess,
+    write: approve,
+  } = useContractWrite({
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    abi: IERC20ABI,
+    functionName: "approve",
+  });
+
+  const { data: balance, error } = useContractRead({
+    abi: IERC20ABI,
+    address: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
+    functionName: "balanceOf",
+    args: ["0x6866E4690937Be45703261843cE46ba996D41e59"],
+  });
+
+  // const { write: redeemDusd } = useContractWrite({
+  //   abi: DusdcABI,
+  //   address: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
+  //   functionName: "transferFrom",
+  //   args: [
+  //     "0x6866E4690937Be45703261843cE46ba996D41e59",
+  //     address,
+  //     parseEther("1", "gwei"),
+  //   ],
+  // });
+
   const getUri = useCallback(() => {
     fetch(
       `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address}/Factors`,
@@ -42,7 +99,7 @@ export default function Home() {
           "Content-Type": "application/x-www-form-urlencoded",
           Authorization: "Basic " + btoa(`${AccountSID}:${AuthToken}`),
         },
-        body: "FriendlyName=Phala flex&FactorType=totp",
+        body: "FriendlyName=Phala flex&FactorType=totp&Config.TimeStep=59",
       }
     )
       .then((res) => res.json())
@@ -81,7 +138,7 @@ export default function Home() {
           setIsVerified(true);
           console.log("this is working");
           const { error } = await supabase.from("user").insert({
-            address: address as string,
+            address: address?.toLocaleLowerCase() as string,
             factor: factor,
             factor_hash: hash(factor),
           });
@@ -125,7 +182,7 @@ export default function Home() {
         .from("user")
         .select("beneficiery")
         .eq("address", address);
-      if (data?.[0].beneficiery !== null) {
+      if (data?.[0]?.beneficiery !== null) {
         setIsBeneficiery(true);
       }
     })();
@@ -136,6 +193,15 @@ export default function Home() {
       className={`flex bg-white text-gray-600 min-h-screen flex-col items-center p-24 gap-20 ${inter.className}`}
     >
       <ConnectButton />
+      {/* <button
+        onClick={() => {
+          redeemDusd({
+            args: [address, 100],
+          });
+        }}
+      >
+        get some dusd
+      </button> */}
       {!isScanningComplete && address && qruri && (
         <div className="flex flex-col items-center gap-10">
           <p>
@@ -265,11 +331,25 @@ export default function Home() {
                 defaultValue="matic"
                 className="p-2 border-2 border-gray-300 rounded-lg cursor-pointer"
               >
-                <option value="usdc">USDC</option>
-                <option value="usdt">USDT</option>
-                <option value="matic">MATIC</option>
+                {tokens.map((token) => (
+                  <select value={token.value} key={token.id}>
+                    {token.name}
+                  </select>
+                ))}
               </select>
             </div>
+            <button
+              onClick={() =>
+                approve({
+                  args: [
+                    "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971", // Add contract address
+                    100000000,
+                  ],
+                })
+              }
+            >
+              Deposit
+            </button>
           </div>
         )}
       </div>
