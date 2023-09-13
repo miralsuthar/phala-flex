@@ -17,6 +17,9 @@ import {
   serviceId,
   tokens,
 } from "@/utils/consts";
+import React from "react";
+import { Input } from "@/components/Input";
+import OtpModal from "@/components/OtpModal";
 
 export default function Home() {
   const [qruri, setQrui] = useState("");
@@ -28,45 +31,17 @@ export default function Home() {
   const [isScanningComplete, setIsScanningComplete] = useState(false);
   const [payload, setPayload] = useState("");
 
-  const [step, setStep] = useState<number>(1);
   const [userType, setUserType] = useState<"owner" | "beneficiery">();
-  const [activeField, setActiveField] = useState("deposit");
   const [beneficiery, setBeneficiery] = useState<string>("");
 
-  const [isBeneficiery, setIsBeneficiery] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<number | undefined>();
+
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(true);
+
+  const [otp, setOtp] = useState<string>("");
 
   const { address } = useAccount();
   const router = useRouter();
-
-  //ERC20 Approve function
-  const {
-    data,
-    isLoading,
-    isSuccess,
-    write: approve,
-  } = useContractWrite({
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    abi: IERC20ABI,
-    functionName: "approve",
-  });
-
-  const { data: balance, error } = useContractRead({
-    abi: IERC20ABI,
-    address: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
-    functionName: "balanceOf",
-    args: ["0x6866E4690937Be45703261843cE46ba996D41e59"],
-  });
-
-  // const { write: redeemDusd } = useContractWrite({
-  //   abi: DusdcABI,
-  //   address: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
-  //   functionName: "transferFrom",
-  //   args: [
-  //     "0x6866E4690937Be45703261843cE46ba996D41e59",
-  //     address,
-  //     parseEther("1", "gwei"),
-  //   ],
-  // });
 
   const getUri = useCallback(() => {
     fetch(
@@ -154,36 +129,23 @@ export default function Home() {
     })();
   }, [address, getUri, isScanningComplete]);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("user")
-        .select("beneficiery")
-        .eq("address", address);
-      if (data?.[0]?.beneficiery !== null) {
-        setIsBeneficiery(true);
-      }
-    })();
-  }, [address]);
-
-  useEffect(() => {
-    router.reload();
-  }, [address]);
+  // useEffect(() => {
+  //   (async () => {
+  //     const { data } = await supabase
+  //       .from("user")
+  //       .select("beneficiery")
+  //       .eq("address", address);
+  //     if (data?.[0]?.beneficiery !== null) {
+  //       setIsBeneficiery(true);
+  //     }
+  //   })();
+  // }, [address]);
 
   return (
     <main
       className={`flex bg-white text-gray-600 min-h-screen flex-col items-center p-24 gap-20 ${inter.className}`}
     >
       <ConnectButton />
-      {/* <button
-        onClick={() => {
-          redeemDusd({
-            args: [address, 100],
-          });
-        }}
-      >
-        get some dusd
-      </button> */}
       {!isScanningComplete && address && qruri && (
         <div className="flex flex-col items-center gap-10">
           <p>
@@ -232,107 +194,55 @@ export default function Home() {
             </button>
           </div>
         )}
-        {account && step === 1 && (
-          <div className="flex flex-col justify-center items-center gap-5">
-            <div className="flex gap-10">
-              <div
-                onClick={() => setUserType("owner")}
-                className={cn(
-                  "h-20 w-28 bg-gray-200 rounded-lg cursor-pointer hover:bg-blue-100 hover:border hover:border-blue-300 transition-all flex justify-center items-center",
-                  userType === "owner" && "bg-blue-300"
-                )}
-              >
-                Owner
-              </div>
-              <div
-                onClick={() => setUserType("beneficiery")}
-                className={cn(
-                  "h-20 w-28 bg-gray-200 rounded-lg cursor-pointer hover:bg-blue-100 hover:border hover:border-blue-300 transition-all flex justify-center items-center",
-                  userType === "beneficiery" && "bg-blue-300"
-                )}
-              >
-                beneficiery
-              </div>
-            </div>
-            {userType === "owner" && !isBeneficiery && (
-              <div className="flex flex-col">
-                <span>Add your beneficiery address for this account</span>
-                <input
-                  className="p-1 rounded-md border border-gray-300"
-                  placeholder="address"
-                  type="text"
-                  value={beneficiery}
-                  onChange={(e) => setBeneficiery(e.target.value)}
-                />
-              </div>
-            )}
-            <button
-              onClick={async () => {
-                if (userType === "owner") {
-                  await addBenefeciery();
-                }
-                setStep(2);
-              }}
-              className="bg-blue-500 text-white px-3 py-1 rounded-lg text-xl hover:scale-105 transition-all"
-            >
-              continue
-            </button>
-          </div>
-        )}
-        {account && step === 2 && (
-          <div className="flex flex-col justify-center items-center gap-5">
+        {account && (
+          <div className="flex flex-col items-center gap-16 p-10 rounded-lg shadow-md border-2 border-blue-100 shadow-blue-100">
             <div className="flex bg-gray-100 rounded-lg relative">
               <span
-                className="w-28 text-center p-2 cursor-pointer"
-                onClick={() => setActiveField("deposit")}
+                className="w-40 text-center p-2 cursor-pointer"
+                onClick={() => setUserType("owner")}
               >
-                Deposit
+                Owner
               </span>
               <span
-                className="w-28 text-center p-2 cursor-pointer"
-                onClick={() => setActiveField("reedem")}
+                className="w-40 text-center p-2 cursor-pointer"
+                onClick={() => setUserType("beneficiery")}
               >
-                reedem
+                Beneficiery
               </span>
               <div
                 className={cn(
-                  "w-28 h-full absolute left-0 top-0 bg-blue-400 rounded-lg opacity-10 border-2 border-blue-800 transition-all",
-                  activeField === "reedem" && "left-28"
+                  "w-40 h-full absolute left-0 top-0 bg-blue-400 rounded-lg opacity-10 border-2 border-blue-800 transition-all",
+                  userType === "beneficiery" && "left-40"
                 )}
               ></div>
             </div>
-
-            <div className="space-x-4">
-              <input
-                className="p-2 border-2 border-gray-300 rounded-lg"
-                placeholder="value"
-                type="text"
+            <div className="space-y-5">
+              {userType !== "beneficiery" && (
+                <Input
+                  amount={depositAmount}
+                  setAmount={setDepositAmount}
+                  disabled={false}
+                  title="Deposit"
+                  placeholder="1"
+                />
+              )}
+              <Input
+                amount={depositAmount}
+                setAmount={setDepositAmount}
+                disabled={false}
+                title="Widhdraw"
+                placeholder="1"
               />
-              <select
-                defaultValue="matic"
-                className="p-2 border-2 border-gray-300 rounded-lg cursor-pointer"
-              >
-                {tokens.map((token) => (
-                  <select value={token.value} key={token.id}>
-                    {token.name}
-                  </select>
-                ))}
-              </select>
             </div>
-            <button
-              onClick={() =>
-                approve({
-                  args: [
-                    "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971", // Add contract address
-                    100000000,
-                  ],
-                })
-              }
-            >
-              Deposit
-            </button>
           </div>
         )}
+        <OtpModal
+          isOpen={isOtpModalOpen}
+          closeModal={() => setIsOtpModalOpen(false)}
+          otp={otp}
+          setOtp={setOtp}
+          verifyOtp={() => {}}
+        />
       </div>
     </main>
   );
