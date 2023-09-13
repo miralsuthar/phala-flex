@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Dispatch, Fragment, SetStateAction } from "react";
-
+import { Dispatch, Fragment, SetStateAction, useState } from "react";
+import { Loader2Icon } from "lucide-react";
 export default function OtpModal({
   isOpen,
   closeModal,
@@ -11,13 +11,19 @@ export default function OtpModal({
   isOpen: boolean;
   closeModal: () => void;
   otp: string;
-  setOtp: Dispatch<SetStateAction<string>>;
+  setOtp: (value: string) => void;
   verifyOtp: () => void;
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+        <Dialog
+          static={true}
+          as="div"
+          className="relative z-10"
+          onClose={closeModal}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -59,11 +65,16 @@ export default function OtpModal({
                       type="button"
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={() => {
+                        setIsLoading(true);
                         verifyOtp();
-                        closeModal();
+                        setIsLoading(false);
                       }}
                     >
-                      Verify
+                      {isLoading ? (
+                        <Loader2Icon className="mx-auto animate-spin" />
+                      ) : (
+                        "Verify"
+                      )}
                     </button>
                   </div>
                 </Dialog.Panel>

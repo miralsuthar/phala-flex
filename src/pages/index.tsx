@@ -1,25 +1,31 @@
 import { supabase } from "@/utils/db";
 import { cn, hash } from "@/utils/helpers";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { useAccount, useContractRead, useContractWrite } from "wagmi";
+import { Address, useAccount, useContractEvent } from "wagmi";
 
-import IERC20ABI from "@/contract/IERC20.json";
-import dUSD from "@/contract/Dusd.json";
-import PhalaFlex from "@/contract/PhalaFlex.json";
-
-import {
-  inter,
-  AccountSID,
-  AuthToken,
-  serviceId,
-  tokens,
-} from "@/utils/consts";
+import { inter, AccountSID, AuthToken, serviceId } from "@/utils/consts";
 import React from "react";
 import { Input } from "@/components/Input";
 import OtpModal from "@/components/OtpModal";
+import PhalaFlexABI from "@/contract/PhalaFlex.json";
+import DusdABi from "@/contract/Dusd.json";
+import {
+  useCheckIfLocked,
+  useRequest,
+  useSetup,
+  useStakeNative,
+  useWithdrawNative,
+  Event,
+  useApproveDusd,
+  useStakeToken,
+  useWithdrawToken,
+} from "@/utils/contractInteractions";
+import { LockedStatus } from "@/components/LockedStatus";
+import { contractAddress, dUSDAddress } from "@/utils/config";
+import { sendFaucet } from "@/utils/sendFaucet";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const [qruri, setQrui] = useState("");
@@ -34,15 +40,143 @@ export default function Home() {
   const [userType, setUserType] = useState<"owner" | "beneficiery">();
   const [beneficiery, setBeneficiery] = useState<string>("");
 
-  const [depositAmount, setDepositAmount] = useState<number | undefined>();
+  const [depositAmount, setDepositAmount] = useState<string>("");
+  const [depositAmountButton, setDepositAmountButton] =
+    useState<boolean>(false);
+  const [depositToken, setDepositToken] = useState<string>("matic");
 
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(true);
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+  const [withdrawAmountButton, setWithdrawAmountButton] =
+    useState<boolean>(false);
+  const [withdrawToken, setWithdrawToken] = useState<string>("matic");
+
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+
+  const [isAccountLocked, setIsAccountLocked] = useState(false);
 
   const [otp, setOtp] = useState<string>("");
 
-  const { address } = useAccount();
-  const router = useRouter();
+  const [isApproved, setIsApproved] = useState<boolean>(false);
 
+  const { address } = useAccount();
+
+  // Contract Interaction
+
+  const { write: setupWrite } = useSetup(hash(factor), beneficiery as Address);
+
+  const { write: stakeNativeWrite } = useStakeNative(
+    address as Address,
+    depositAmount
+  );
+
+  const { write: stakeTokenWrite } = useStakeToken(
+    address as Address,
+    0,
+    depositAmount
+  );
+
+  const { write: withdrawNativeWrite } = useWithdrawNative(
+    address as Address,
+    withdrawAmount,
+    false
+  );
+
+  const { write: withdrawTokenWrite } = useWithdrawToken(
+    address as Address,
+    0,
+    withdrawAmount,
+    false
+  );
+
+  const { write: verifyOtpWrite } = useRequest(Number(otp), false);
+
+  const { data: isOtpLocked, refetch: otpRefetch } = useCheckIfLocked(
+    address as Address
+  );
+
+  const { write: approveWrite, data } = useApproveDusd(
+    contractAddress,
+    depositAmount
+  );
+
+  // Tost
+  const notifySucess = (message: string) =>
+    toast(message, {
+      position: "top-center",
+      className: "bg-green-400",
+    });
+
+  const notifyError = (message: string) =>
+    toast(message, {
+      position: "top-center",
+      className: "bg-red-400",
+    });
+
+  useContractEvent({
+    address: dUSDAddress,
+    abi: DusdABi,
+    eventName: "Approval",
+    listener(logs: any) {
+      if (
+        logs[0].args.spender.toLocaleLowerCase() ===
+        contractAddress.toLocaleLowerCase()
+      ) {
+        setIsApproved(true);
+      }
+    },
+  });
+
+  useContractEvent({
+    address: contractAddress,
+    abi: PhalaFlexABI,
+    eventName: Event.SuccessOTP,
+    listener(logs: any) {
+      if (logs[0]?.args.user === address) {
+        otpRefetch();
+      }
+    },
+  });
+
+  useContractEvent({
+    address: contractAddress,
+    abi: PhalaFlexABI,
+    eventName: Event.NativeStaked,
+    listener(logs: any) {
+      if (logs[0]?.args.user === address) {
+        setDepositAmountButton(false);
+        notifySucess("Matic deposited successfully");
+        setDepositAmount("");
+      }
+    },
+  });
+
+  useContractEvent({
+    address: contractAddress,
+    abi: PhalaFlexABI,
+    eventName: Event.NativeWithdrawn,
+    listener(logs: any) {
+      if (logs[0]?.args.user === address) {
+        setWithdrawAmountButton(false);
+        notifySucess("Matic withdraw successfully");
+        setWithdrawAmount("");
+        otpRefetch();
+      }
+    },
+  });
+
+  useContractEvent({
+    address: contractAddress,
+    abi: PhalaFlexABI,
+    eventName: Event.TokenWithdrawn,
+    listener(logs: any) {
+      if (logs[0].args.user === address) {
+        setWithdrawAmountButton(false);
+        otpRefetch();
+      }
+    },
+  });
+
+  // get uri
   const getUri = useCallback(() => {
     fetch(
       `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address?.toLocaleLowerCase()}/Factors`,
@@ -62,15 +196,6 @@ export default function Home() {
         setFactor(data.sid);
       });
   }, [address]);
-
-  const addBenefeciery = async () => {
-    const { error } = await supabase
-      .from("user")
-      .update({
-        beneficiery: beneficiery,
-      })
-      .eq("address", address);
-  };
 
   const verifyUser = (otp: string) => {
     fetch(
@@ -99,20 +224,29 @@ export default function Home() {
       });
   };
 
-  const verifyToken = (otp: string, factor: string) => {
-    fetch(
-      `https://verify.twilio.com/v2/Services/${serviceId}/Entities/${address}/Challenges`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: "Basic " + btoa(`${AccountSID}:${AuthToken}`),
-        },
-        body: new URLSearchParams({
-          AuthPayload: otp,
-          FactorSid: factor,
-        }),
-      }
-    );
+  const depositAmountHandler = () => {
+    if (depositToken === "matic") {
+      stakeNativeWrite?.();
+      setDepositAmountButton(true);
+    } else if (isApproved) {
+      setDepositAmountButton(true);
+      stakeTokenWrite?.();
+      setDepositAmountButton(false);
+    } else {
+      setDepositAmountButton(true);
+      approveWrite?.();
+      setDepositAmountButton(false);
+    }
+  };
+
+  const withdrawAmountHandler = () => {
+    if (withdrawToken === "matic") {
+      withdrawNativeWrite?.();
+      setWithdrawAmountButton(true);
+    } else {
+      withdrawTokenWrite?.();
+      setWithdrawAmountButton(true);
+    }
   };
 
   useEffect(() => {
@@ -129,17 +263,13 @@ export default function Home() {
     })();
   }, [address, getUri, isScanningComplete]);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const { data } = await supabase
-  //       .from("user")
-  //       .select("beneficiery")
-  //       .eq("address", address);
-  //     if (data?.[0]?.beneficiery !== null) {
-  //       setIsBeneficiery(true);
-  //     }
-  //   })();
-  // }, [address]);
+  useEffect(() => {
+    setIsAccountLocked(isOtpLocked as boolean);
+  }, [isOtpLocked]);
+
+  useEffect(() => {
+    console.log("Tokne: ", withdrawToken);
+  }, [withdrawToken]);
 
   return (
     <main
@@ -184,15 +314,45 @@ export default function Home() {
         {isverified && (
           <div className="flex flex-col justify-center items-center gap-5">
             <span className="text-center text-green-500 text-2xl">
-              Verification Successful!
+              Otp Verification Successful!
             </span>
+            <span>Add your benefeciery for this account</span>
+            <input
+              type="text"
+              className="text-black text-center text-2xl rounded-md border p-1 border-gray-500"
+              placeholder="benefeciery"
+              value={beneficiery}
+              onChange={(e) => setBeneficiery(e.target.value)}
+            />
+
             <button
-              onClick={() => router.reload()}
+              onClick={() => {
+                setupWrite?.();
+              }}
               className="bg-blue-500 text-white px-3 py-1 rounded-md text-lg w-max hover:scale-105 transition-all"
             >
-              Complete
+              create Account
             </button>
           </div>
+        )}
+        {account && (
+          <LockedStatus
+            onClick={() => {
+              if (isAccountLocked) {
+                setIsOtpModalOpen(true);
+              }
+            }}
+            isAccountLocked={isAccountLocked}
+          />
+        )}
+        {account && (
+          <button
+            onClick={() => {
+              sendFaucet(address as Address, "100");
+            }}
+          >
+            Get dUSD
+          </button>
         )}
         {account && (
           <div className="flex flex-col items-center gap-16 p-10 rounded-lg shadow-md border-2 border-blue-100 shadow-blue-100">
@@ -220,18 +380,30 @@ export default function Home() {
               {userType !== "beneficiery" && (
                 <Input
                   amount={depositAmount}
-                  setAmount={setDepositAmount}
-                  disabled={false}
-                  title="Deposit"
+                  setAmount={(value) => setDepositAmount(value)}
+                  disabled={depositAmountButton}
+                  title={
+                    depositToken === "dusd"
+                      ? isApproved
+                        ? "Deposit"
+                        : "Approve"
+                      : "Deposit"
+                  }
                   placeholder="1"
+                  token={depositToken}
+                  setToken={(value) => setDepositToken(value)}
+                  onClick={depositAmountHandler}
                 />
               )}
               <Input
-                amount={depositAmount}
-                setAmount={setDepositAmount}
-                disabled={false}
-                title="Widhdraw"
+                amount={withdrawAmount}
+                setAmount={setWithdrawAmount}
+                disabled={isAccountLocked || withdrawAmountButton}
+                title="withdraw"
                 placeholder="1"
+                token={withdrawToken}
+                setToken={(value) => setWithdrawToken(value)}
+                onClick={withdrawAmountHandler}
               />
             </div>
           </div>
@@ -240,8 +412,10 @@ export default function Home() {
           isOpen={isOtpModalOpen}
           closeModal={() => setIsOtpModalOpen(false)}
           otp={otp}
-          setOtp={setOtp}
-          verifyOtp={() => {}}
+          setOtp={(value) => setOtp(value)}
+          verifyOtp={() => {
+            verifyOtpWrite?.();
+          }}
         />
       </div>
     </main>
