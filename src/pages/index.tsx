@@ -1,44 +1,22 @@
-import { Inter } from "next/font/google";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import QRCode from "react-qr-code";
-import { useCallback, useEffect, useState } from "react";
-import { useAccount } from "wagmi";
 import { supabase } from "@/utils/db";
 import { cn, hash } from "@/utils/helpers";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/router";
-import {
-  useContractWrite,
-  useContractRead,
-  usePrepareContractWrite,
-} from "wagmi";
+import { useCallback, useEffect, useState } from "react";
+import QRCode from "react-qr-code";
+import { useAccount, useContractRead, useContractWrite } from "wagmi";
 
 import IERC20ABI from "@/contract/IERC20.json";
-import DusdcABI from "@/contract/Dusd.json";
-import { parseEther } from "viem";
+import dUSD from "@/contract/Dusd.json";
+import PhalaFlex from "@/contract/PhalaFlex.json";
 
-const inter = Inter({ subsets: ["latin"] });
-
-const serviceId = process.env.NEXT_PUBLIC_SERVICE_ID as string;
-const AccountSID = process.env.NEXT_PUBLIC_ACCOUNT_SID as string;
-const AuthToken = process.env.NEXT_PUBLIC_AUTH_TOKEN as string;
-
-const tokens = [
-  {
-    id: 1,
-    value: "0x0000000000000000000001",
-    name: "matic",
-  },
-  {
-    id: 2,
-    value: "0x2882CE9eC73cd80AB6c048C030BDa65fd3A0263A",
-    name: "dusd",
-  },
-  {
-    id: 3,
-    value: "0x0000000000000000000001",
-    name: "usdt",
-  },
-];
+import {
+  inter,
+  AccountSID,
+  AuthToken,
+  serviceId,
+  tokens,
+} from "@/utils/consts";
 
 export default function Home() {
   const [qruri, setQrui] = useState("");
@@ -252,7 +230,6 @@ export default function Home() {
         )}
         {account && step === 1 && (
           <div className="flex flex-col justify-center items-center gap-5">
-            <span>Select the type of account</span>
             <div className="flex gap-10">
               <div
                 onClick={() => setUserType("owner")}
