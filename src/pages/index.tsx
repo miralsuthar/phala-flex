@@ -22,6 +22,8 @@ import {
   useStakeToken,
   useWithdrawToken,
   useGetbeneficiaryOwnerAddress,
+  useNativeBalanceOf,
+  useTokenBalanceOf,
 } from "@/utils/contractInteractions";
 import { LockedStatus } from "@/components/LockedStatus";
 import { contractAddress, dUSDAddress } from "@/utils/config";
@@ -97,6 +99,14 @@ export default function Home() {
     withdrawAmount,
     false
   );
+
+  const { data: maticBalance, refetch: refetchMaticBalance } =
+    useNativeBalanceOf(address as Address);
+
+  console.log("matic: ", Number(maticBalance) / 10 ** 18);
+
+  const { data: tokenBalance, refetch: refetchTokenBalance } =
+    useTokenBalanceOf(address as Address, 0);
 
   const { write: verifyOtpWrite } = useRequest(Number(otp), false);
 
@@ -177,6 +187,7 @@ export default function Home() {
         setWithdrawAmountButton(false);
         notifySucess("Matic withdraw successfully");
         setWithdrawAmount("");
+        refetchMaticBalance();
         otpRefetch();
       }
     },
@@ -189,6 +200,7 @@ export default function Home() {
     listener(logs: any) {
       if (logs[0].args.user === address) {
         setWithdrawAmountButton(false);
+        refetchTokenBalance();
         otpRefetch();
       }
     },
@@ -373,6 +385,7 @@ export default function Home() {
             onClick={() => {
               sendFaucet(address as Address, "100");
             }}
+            className="bg-blue-400 absolute top-0 right-0 m-2 font-medium rounded-md px-2 py-1 text-white"
           >
             Get dUSD
           </button>
@@ -432,6 +445,14 @@ export default function Home() {
                 setToken={(value) => setWithdrawToken(value)}
                 onClick={withdrawAmountHandler}
               />
+            </div>
+            <div>
+              {Number(maticBalance) !== 0 && (
+                <div>Matic Deposited: {Number(maticBalance) / 10 ** 18}</div>
+              )}
+              {Number(tokenBalance) !== 0 && (
+                <div>dUSD Deposited: {Number(tokenBalance) / 10 ** 18}</div>
+              )}
             </div>
           </div>
         )}
