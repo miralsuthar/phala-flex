@@ -173,6 +173,7 @@ export default function Home() {
       if (logs[0]?.args.user === address) {
         setDepositAmountButton(false);
         notifySucess("Matic deposited successfully");
+        refetchMaticBalance();
         setDepositAmount("");
       }
     },
@@ -189,6 +190,17 @@ export default function Home() {
         setWithdrawAmount("");
         refetchMaticBalance();
         otpRefetch();
+      }
+    },
+  });
+
+  useContractEvent({
+    address: contractAddress,
+    abi: PhalaFlexABI,
+    eventName: Event.TokenStaked,
+    listener(logs: any) {
+      if (logs[0].args.user === address) {
+        refetchTokenBalance();
       }
     },
   });
