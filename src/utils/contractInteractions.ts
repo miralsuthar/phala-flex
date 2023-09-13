@@ -183,6 +183,22 @@ export const useWithdrawNative = (
   return { write, configError };
 };
 
+export const useAttestor = (attestor: string) => {
+  const { config, error: configError } = usePrepareContractWrite({
+    address: contractAddress,
+    abi: PhalaFlex,
+    functionName: "setAttestor",
+    args: [attestor],
+  });
+
+  const { write } = useContractWrite({
+    ...config,
+    onSuccess: () => {}, // do whatever you want on Success
+  });
+
+  return { write, configError };
+};
+
 export const useWithdrawToken = (
   userAddress: Address,
   token: Number,

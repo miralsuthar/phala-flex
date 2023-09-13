@@ -24,6 +24,7 @@ import {
   useGetbeneficiaryOwnerAddress,
   useNativeBalanceOf,
   useTokenBalanceOf,
+  useAttestor,
 } from "@/utils/contractInteractions";
 import { LockedStatus } from "@/components/LockedStatus";
 import { contractAddress, dUSDAddress } from "@/utils/config";
@@ -64,6 +65,8 @@ export default function Home() {
 
   const [isApproved, setIsApproved] = useState<boolean>(false);
 
+  const [attestor, setAttestor] = useState<string>("");
+
   const { address } = useAccount();
 
   // Contract Interaction
@@ -99,6 +102,8 @@ export default function Home() {
     withdrawAmount,
     false
   );
+
+  const { write: setAttestorWrite } = useAttestor(attestor);
 
   const { data: maticBalance, refetch: refetchMaticBalance } =
     useNativeBalanceOf(address as Address);
@@ -481,6 +486,21 @@ export default function Home() {
             }
           }}
         />
+        {address === "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971" && (
+          <>
+            <input
+              value={attestor}
+              onChange={(e) => setAttestor(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                setAttestorWrite?.();
+              }}
+            >
+              Set Attestor
+            </button>
+          </>
+        )}
       </div>
     </main>
   );
