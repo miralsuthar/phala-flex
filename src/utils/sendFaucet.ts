@@ -1,7 +1,7 @@
-import { privateKeyToAccount } from "viem/accounts";
-import { createPublicClient, createWalletClient, http } from "viem";
-import { mainnet, polygonMumbai } from "viem/chains";
 import dUSD from "@/contract/Dusd.json";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { polygonMumbai } from "viem/chains";
 
 export const sendFaucet = async (address: string, amount: number) => {
   const account = privateKeyToAccount(
