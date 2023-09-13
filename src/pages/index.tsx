@@ -21,6 +21,7 @@ import {
   useApproveDusd,
   useStakeToken,
   useWithdrawToken,
+  useGetBeneficeryOwnerAddress,
 } from "@/utils/contractInteractions";
 import { LockedStatus } from "@/components/LockedStatus";
 import { contractAddress, dUSDAddress } from "@/utils/config";
@@ -81,6 +82,12 @@ export default function Home() {
     false
   );
 
+  const { write: withdrawNativeBeneficeryWrite } = useWithdrawNative(
+    address as Address,
+    withdrawAmount,
+    true
+  );
+
   const { write: withdrawTokenWrite } = useWithdrawToken(
     address as Address,
     0,
@@ -90,8 +97,16 @@ export default function Home() {
 
   const { write: verifyOtpWrite } = useRequest(Number(otp), false);
 
+  const { write: verifyOtpBeneficeryWrite } = useRequest(Number(otp), true);
+
+  const { data: beneficeryOwnerAddress } = useGetBeneficeryOwnerAddress(
+    address?.toLocaleLowerCase() as Address
+  );
+
   const { data: isOtpLocked, refetch: otpRefetch } = useCheckIfLocked(
-    address as Address
+    userType === "beneficiery"
+      ? (beneficeryOwnerAddress as Address)
+      : (address as Address)
   );
 
   const { write: approveWrite, data } = useApproveDusd(
@@ -241,7 +256,11 @@ export default function Home() {
 
   const withdrawAmountHandler = () => {
     if (withdrawToken === "matic") {
-      withdrawNativeWrite?.();
+      if (userType === "beneficiery") {
+        withdrawNativeBeneficeryWrite?.();
+      } else {
+        withdrawNativeWrite?.();
+      }
       setWithdrawAmountButton(true);
     } else {
       withdrawTokenWrite?.();
@@ -414,7 +433,11 @@ export default function Home() {
           otp={otp}
           setOtp={(value) => setOtp(value)}
           verifyOtp={() => {
-            verifyOtpWrite?.();
+            if (userType === "beneficiery") {
+              verifyOtpBeneficeryWrite?.();
+            } else {
+              verifyOtpWrite?.();
+            }
           }}
         />
       </div>

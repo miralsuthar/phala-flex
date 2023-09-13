@@ -65,6 +65,17 @@ export const useGetTokenContractAddress = (token: Number) => {
   return { data, error, isLoading, isSuccess };
 };
 
+export const useGetBeneficeryOwnerAddress = (address: Address) => {
+  const { data, error, isLoading, isSuccess } = useContractRead({
+    address: contractAddress,
+    abi: PhalaFlex,
+    functionName: "getBeneficiarysOwner",
+    args: [address],
+  });
+
+  return { data, error, isLoading, isSuccess };
+};
+
 export const useRequest = (otp: Number, isBeneficiary: Boolean) => {
   const { config, error: configError } = usePrepareContractWrite({
     address: contractAddress,
