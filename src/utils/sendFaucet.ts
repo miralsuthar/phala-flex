@@ -27,5 +27,11 @@ export const sendFaucet = async (address: string, amount: number) => {
     args: [],
   });
 
-  await walletClient.writeContract(request);
+  const tx = await walletClient.writeContract(request);
+
+  const transaction = await client.waitForTransactionReceipt({
+    hash: tx,
+  });
+
+  return transaction;
 };
