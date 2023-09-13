@@ -188,6 +188,10 @@ export default function Home() {
     })();
   }, [address]);
 
+  useEffect(() => {
+    router.reload();
+  }, [address]);
+
   return (
     <main
       className={`flex bg-white text-gray-600 min-h-screen flex-col items-center p-24 gap-20 ${inter.className}`}
