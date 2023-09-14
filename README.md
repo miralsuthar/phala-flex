@@ -13,7 +13,7 @@ The primary problem addressed by Phat contracts is the validation of One-Time Pa
 The basic mechanism behind how the PhalaFlex smart contract interacts with the Phat function is shown below:
 
 <p align="center">
-<img src="https://github.com/miralsuthar/phala-flex/assets/76066586/382333a2-b092-4d9c-ab8d-7759cb0c1dec" height=450 />
+<img src="https://github.com/miralsuthar/phala-flex/assets/76066586/34587c06-0e23-424e-832c-fd14807fd23b" height=450 />
 </p>
 
 There are 3 major function types that make this a great way to store your native and ERC20 tokens:
@@ -35,7 +35,7 @@ You can find all the details about the smart contract and phat function through 
 Here is the all the information you need regarding the contract and phat function:
 - Polygon Mainnet:
   - dUSD address (a dummy erc20 address for demo): `0x2eF7C4ce244bc84d25ac7e6Fc72fcB000101a207`
-  - Phala flex contract address: `0x32ff138fbcef0c8e9819979aab20f3328daf4995`
+  - Phala flex contract address: `0x875b43C28C37A96D531719644960c71e32Ea7801`
   - Polkadot Phat Function deployer's address: `5D1y7Gz9jnrLu34ZgdawRrbMaqWJi1JKE8rnPotKd6ekyu6w`
   - Attestor Address: `0x32ff138fbcef0c8e9819979aab20f3328daf4995`
 - Polygon Mumbai:
