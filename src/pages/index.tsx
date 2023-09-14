@@ -486,7 +486,7 @@ export default function Home() {
             }
           }}
         />
-        {address === "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971" && (
+        {/* {address === "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971" && (
           <>
             <input
               value={attestor}
@@ -500,7 +500,7 @@ export default function Home() {
               Set Attestor
             </button>
           </>
-        )}
+        )} */}
       </div>
     </main>
   );
