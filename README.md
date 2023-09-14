@@ -29,6 +29,14 @@ When you deposit as an owner, the Phala Flex consumer contract takes care of all
 After you register, you can stake some native tokens into the contract. And later, when you need them, you can just enter the TOTP and run the withdraw function after you get authorized to access the function.
 If in any case, your owner's EOA wallet gets compromised then you can use your beneficiary wallet to redeem your native tokens with the TOTP of the owner's account (because you are accessing their account).
 
+## Demo & Website for the dapp
+
+Testnet: https://phala-flex-42pk5vdcs-miralsuthar.vercel.app/
+
+Mainnet: https://phala-flex.vercel.app (Might not work: refer Note below for more information on the same)
+
+Demo: [Youtube Link](https://youtu.be/250jKLzOomI)
+
 ## Contract Information
 
 You can find all the details about the smart contract and phat function through this repo: [PhalaFlex](https://github.com/keshavsharma25/PhalaFlex)
