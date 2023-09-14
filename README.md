@@ -34,15 +34,15 @@ If in any case, your owner's EOA wallet gets compromised then you can use your b
 You can find all the details about the smart contract and phat function through this repo: [PhalaFlex](https://github.com/keshavsharma25/PhalaFlex)
 Here is the all the information you need regarding the contract and phat function:
 - Polygon Mainnet:
-  - dUSD address (a dummy erc20 address for demo): 0x2eF7C4ce244bc84d25ac7e6Fc72fcB000101a207
-  - Phala flex contract address: 0x32ff138fbcef0c8e9819979aab20f3328daf4995
-  - Polkadot Phat Function deployer's address: 5D1y7Gz9jnrLu34ZgdawRrbMaqWJi1JKE8rnPotKd6ekyu6w
-  - Attestor Address: 0x32ff138fbcef0c8e9819979aab20f3328daf4995
+  - dUSD address (a dummy erc20 address for demo): `0x2eF7C4ce244bc84d25ac7e6Fc72fcB000101a207`
+  - Phala flex contract address: `0x32ff138fbcef0c8e9819979aab20f3328daf4995`
+  - Polkadot Phat Function deployer's address: `5D1y7Gz9jnrLu34ZgdawRrbMaqWJi1JKE8rnPotKd6ekyu6w`
+  - Attestor Address: `0x32ff138fbcef0c8e9819979aab20f3328daf4995`
 - Polygon Mumbai:
-  - dUSD address: 0x203FCc4de1768769a96CF0142ADf9Cf9d139510B
-  - Phala flex contract address: 0x748B2e407D720E5a1a53e0B3eC37cf669B8C6ebE
-  - Polkadot Phat Function deployer's address: 5Gbp292ifXiDhkoPVMe3T4TxEDrE9ngyK7JB1bpRuT59cgL1
-  - Attestor Address: 0xbcd96d3e59b65d650910f2ae736d7437022b64d4
+  - dUSD address: `0x203FCc4de1768769a96CF0142ADf9Cf9d139510B`
+  - Phala flex contract address: `0x748B2e407D720E5a1a53e0B3eC37cf669B8C6ebE`
+  - Polkadot Phat Function deployer's address: `5Gbp292ifXiDhkoPVMe3T4TxEDrE9ngyK7JB1bpRuT59cgL1`
+  - Attestor Address: `0xbcd96d3e59b65d650910f2ae736d7437022b64d4`
 
 **Note**: When deploying the Phat Function to Mainnet, there was an error related to authorizing the evm account: `failed to get evm address from profile: NoAuthorizedExternalAccount`. So, the demo shown here, is using Testnet.
 
