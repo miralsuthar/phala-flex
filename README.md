@@ -1,38 +1,9 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Phala Flex
 
-## Getting Started
+**Phala Flex** introduces a novel approach to engaging with smart contracts, integrating an identity verification system using **Time-Based One-Time Passwords** (TOTP). Users are required to authenticate themselves through third-party authenticator apps such as Authy or Google Authenticator before gaining access to specific functions that demand authentication. 
 
-First, run the development server:
+<p align="center">
+<img src="https://github.com/miralsuthar/phala-flex/assets/76066586/3fd6adda-38be-4b91-9737-c5391194fb7f" height=300 />
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The primary problem addressed by Phat contracts is the validation of One-Time Passwords (OTPs) off-chain to confirm the authenticity of user-submitted TOTP transactions. When a user submits a TOTP, it undergoes off-chain validation, and if it's deemed valid, access is granted to execute a specific action associated with a function that necessitates the initial authentication. Subsequent to the successful execution of the function transaction, the contract can be disabled, requiring re-verification of the TOTP for any future executions.
